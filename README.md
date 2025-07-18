@@ -34,8 +34,8 @@ Ideal for Steam Deck, mobile, or anyone who prefers a more readable and accessib
 
 ## 🛠️ Installation
 
-1. Install the **Steamodded (Smods)** [BepInEx](https://www.nexusmods.com/balatro/mods/45).
-2. Drop the `Zoomer` mod folder into `C:\Users\yourname\AppData\Roaming\Balatro\Mods` directory.
+1. Install the [Steamodded (Smods)](https://www.nexusmods.com/balatro/mods/45).
+2. Drop the `Smods` and `Zoomer` mod folder into `C:\Users\yourname\AppData\Roaming\Balatro\Mods` directory.
 3. Launch the game and adjust the settings from the in-game config tab.
 4. (Optional) Restart or change interface view for settings to fully apply.
 
