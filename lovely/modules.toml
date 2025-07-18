@@ -1,0 +1,49 @@
+[manifest]
+version = '1.0.0'
+dump_lua = true
+priority = 1
+
+
+[[patches]]
+[patches.module]
+source = 'src/config.lua'
+before = 'main.lua'
+name = 'zoomer.config'
+
+[[patches]]
+[patches.module]
+source = 'src/config_ui.lua'
+before = 'main.lua'
+name = 'zoomer.config_ui'
+
+[[patches]]
+[patches.module]
+source = 'src/locale.lua'
+before = 'main.lua'
+name = 'zoomer.locale'
+
+[[patches]]
+[patches.module]
+source = 'src/logger.lua'
+before = 'main.lua'
+name = 'zoomer.logger'
+
+[[patches]]
+[patches.module]
+source = 'src/scalerUI.lua'
+before = 'main.lua'
+name = 'zoomer.scalerUI'
+
+[[patches]]
+[patches.module]
+source = 'src/core.lua'
+before = 'main.lua'
+name = 'zoomer.core'
+
+[[patches]]
+[patches.copy]
+target = 'main.lua'
+position = 'append'
+sources = [
+    'src/init.lua'
+]

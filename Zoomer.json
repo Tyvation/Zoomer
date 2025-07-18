@@ -1,0 +1,11 @@
+{
+  "id": "Zoomer",
+  "name": "Zoomer",
+  "prefix": "zmer",
+  "author": ["Tyvation"],
+  "description": "It's getting bigger!!!",
+  "priority": 100000,
+  "main_file": "src/smods.lua",
+  "badge_colour": "4CAF50",
+  "version": "1.0.0"
+}

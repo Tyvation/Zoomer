@@ -1,0 +1,1 @@
+Zoomer = require('zoomer.core')
