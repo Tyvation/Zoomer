@@ -6,7 +6,9 @@
 ![Zoomer Preview](images/comp1.jpg)  
 ![Zoomer Preview](images/comp2.jpg)  
 *A comparison of default UI vs. scaled UI using Zoomer.*
-![Zoomer Preview](images/configt.jpg)  
+
+![Zoomer Preview](images/configt.jpg) 
+*Configurable settings*
 ---
 
 ## 📦 Overview
