@@ -2,55 +2,130 @@ local config = require('zoomer.config')
 
 config.load()
 
-
--- Override G.UIDEF.card_h_popup to make card tooltips scaleable
-local orig_card_h_popup = G.UIDEF.card_h_popup
-function G.UIDEF.card_h_popup(card)
-  local result = orig_card_h_popup(card)
-  
-  if result and config.tooltip_scale ~= 1.0 then
-    -- Scale the card tooltip
-    local function scale_tooltip(nodes)
-      for i, node in ipairs(nodes) do
+-- Override desc_from_rows to scale hardcoded dimensions and add text scaling
+local orig_desc_from_rows = desc_from_rows
+function desc_from_rows(desc_nodes, empty, maxw)
+  -- First, scale the text in desc_nodes before passing to original function
+  local scaled_desc_nodes = desc_nodes
+  if config.tooltip_scale ~= 1.0 then
+    scaled_desc_nodes = {}
+    for k, v in ipairs(desc_nodes) do
+      scaled_desc_nodes[k] = {}
+      for i, node in ipairs(v) do
+        scaled_desc_nodes[k][i] = {}
+        -- Copy all properties
+        for key, val in pairs(node) do
+          scaled_desc_nodes[k][i][key] = val
+        end
+        -- Scale text properties
         if node.config then
-          -- Scale padding and dimensions
-          if node.config.padding then
-            node.config.padding = node.config.padding * config.tooltip_scale
+          if not scaled_desc_nodes[k][i].config then 
+            scaled_desc_nodes[k][i].config = {}
+            for key, val in pairs(node.config) do
+              scaled_desc_nodes[k][i].config[key] = val
+            end
           end
-          if node.config.minw then
-            node.config.minw = node.config.minw * config.tooltip_scale
-          end
-          if node.config.minh then
-            node.config.minh = node.config.minh * config.tooltip_scale
-          end
-          if node.config.maxw then
-            node.config.maxw = node.config.maxw * config.tooltip_scale
-          end
-          if node.config.r then
-            node.config.r = node.config.r * config.tooltip_scale
-          end
-          
-          -- Scale text elements
-          if node.config.text and node.config.scale then
-            node.config.scale = node.config.scale * config.tooltip_scale
-          end
-          
-          -- Scale DynaText objects
-          if node.config.object and node.config.object.config and node.config.object.config.scale then
-            node.config.object.config.scale = node.config.object.config.scale * config.tooltip_scale
+          if node.config.scale then
+            scaled_desc_nodes[k][i].config.scale = node.config.scale * config.tooltip_scale
           end
         end
-        
-        -- Recursively scale child nodes
-        if node.nodes then
-          scale_tooltip(node.nodes)
+        -- Scale DynaText objects
+        if node.config and node.config.object and type(node.config.object) == "table" and node.config.object.config then
+          if not scaled_desc_nodes[k][i].config.object then
+            scaled_desc_nodes[k][i].config.object = {}
+            for key, val in pairs(node.config.object) do
+              scaled_desc_nodes[k][i].config.object[key] = val
+            end
+          end
+          if not scaled_desc_nodes[k][i].config.object.config then
+            scaled_desc_nodes[k][i].config.object.config = {}
+            for key, val in pairs(node.config.object.config) do
+              scaled_desc_nodes[k][i].config.object.config[key] = val
+            end
+          end
+          if node.config.object.config.scale then
+            scaled_desc_nodes[k][i].config.object.config.scale = node.config.object.config.scale * config.tooltip_scale
+          end
         end
       end
     end
+  end
+  
+  -- Call original function with scaled nodes
+  local result = orig_desc_from_rows(scaled_desc_nodes, empty, maxw and (maxw * config.tooltip_scale) or maxw)
+  
+  -- Apply scaling to container dimensions
+  if config.tooltip_scale ~= 1.0 then
+    -- Scale the hardcoded dimensions
+    result.config.r = (result.config.r or 0.1) * config.tooltip_scale
+    result.config.padding = (result.config.padding or 0.04) * config.tooltip_scale  
+    result.config.minw = (result.config.minw or 2) * config.tooltip_scale
+    result.config.minh = (result.config.minh or 0.8) * config.tooltip_scale
+    result.config.emboss = result.config.emboss and (result.config.emboss * config.tooltip_scale)
     
-    if result.nodes then
-      scale_tooltip(result.nodes)
+    -- Scale the inner padding
+    if result.nodes and result.nodes[1] and result.nodes[1].config and result.nodes[1].config.padding then
+      result.nodes[1].config.padding = result.nodes[1].config.padding * config.tooltip_scale
     end
+  end
+  
+  return result
+end
+
+-- Override name_from_rows to scale hardcoded dimensions  
+local orig_name_from_rows = name_from_rows  
+function name_from_rows(name_nodes, background_colour)
+  -- First, scale the text in name_nodes before passing to original function
+  local scaled_name_nodes = name_nodes
+  if name_nodes and type(name_nodes) == 'table' and config.tooltip_scale ~= 1.0 then
+    scaled_name_nodes = {}
+    for i, node in ipairs(name_nodes) do
+      scaled_name_nodes[i] = {}
+      -- Copy all properties
+      for key, val in pairs(node) do
+        scaled_name_nodes[i][key] = val
+      end
+      -- Scale text properties
+      if node.config then
+        if not scaled_name_nodes[i].config then 
+          scaled_name_nodes[i].config = {}
+          for key, val in pairs(node.config) do
+            scaled_name_nodes[i].config[key] = val
+          end
+        end
+        if node.config.scale then
+          scaled_name_nodes[i].config.scale = node.config.scale * config.tooltip_scale
+        end
+      end
+      -- Scale DynaText objects  
+      if node.config and node.config.object and type(node.config.object) == "table" and node.config.object.config then
+        if not scaled_name_nodes[i].config.object then
+          scaled_name_nodes[i].config.object = {}
+          for key, val in pairs(node.config.object) do
+            scaled_name_nodes[i].config.object[key] = val
+          end
+        end
+        if not scaled_name_nodes[i].config.object.config then
+          scaled_name_nodes[i].config.object.config = {}
+          for key, val in pairs(node.config.object.config) do
+            scaled_name_nodes[i].config.object.config[key] = val
+          end
+        end
+        if node.config.object.config.scale then
+          scaled_name_nodes[i].config.object.config.scale = node.config.object.config.scale * config.tooltip_scale
+        end
+      end
+    end
+  end
+  
+  -- Call original function with scaled nodes
+  local result = orig_name_from_rows(scaled_name_nodes, background_colour)
+  
+  -- Apply scaling to container dimensions
+  if result and config.tooltip_scale ~= 1.0 then
+    result.config.padding = (result.config.padding or 0.05) * config.tooltip_scale
+    result.config.r = (result.config.r or 0.1) * config.tooltip_scale
+    result.config.emboss = result.config.emboss and (result.config.emboss * config.tooltip_scale)
   end
   
   return result
@@ -297,55 +372,77 @@ end
 -- Override info_tip_from_rows to make variation tooltips scaleable
 local orig_info_tip_from_rows = info_tip_from_rows
 function info_tip_from_rows(desc_nodes, name)
-  local result = orig_info_tip_from_rows(desc_nodes, name)
-  
-  if result and config.tooltip_scale ~= 1.0 then
-    -- Scale the variation tooltip
-    local function scale_variation_tooltip(nodes)
-      for i, node in ipairs(nodes) do
+  -- First, scale the text in desc_nodes before passing to original function
+  local scaled_desc_nodes = desc_nodes
+  if config.tooltip_scale ~= 1.0 then
+    scaled_desc_nodes = {}
+    for k, v in ipairs(desc_nodes) do
+      scaled_desc_nodes[k] = {}
+      for i, node in ipairs(v) do
+        scaled_desc_nodes[k][i] = {}
+        -- Copy all properties
+        for key, val in pairs(node) do
+          scaled_desc_nodes[k][i][key] = val
+        end
+        -- Scale text properties
         if node.config then
-          -- Scale padding and dimensions
-          if node.config.padding then
-            node.config.padding = node.config.padding * config.tooltip_scale
+          if not scaled_desc_nodes[k][i].config then 
+            scaled_desc_nodes[k][i].config = {}
+            for key, val in pairs(node.config) do
+              scaled_desc_nodes[k][i].config[key] = val
+            end
           end
-          if node.config.minw then
-            node.config.minw = node.config.minw * config.tooltip_scale
-          end
-          if node.config.minh then
-            node.config.minh = node.config.minh * config.tooltip_scale
-          end
-          if node.config.maxw then
-            node.config.maxw = node.config.maxw * config.tooltip_scale
-          end
-          if node.config.r then
-            node.config.r = node.config.r * config.tooltip_scale
-          end
-          
-          -- Scale outline
-          if node.config.outline then
-            node.config.outline = node.config.outline * config.tooltip_scale
-          end
-          
-          -- Scale text elements
-          if node.config.text and node.config.scale then
-            node.config.scale = node.config.scale * config.tooltip_scale
-          end
-          
-          -- Scale DynaText objects
-          if node.config.object and node.config.object.config and node.config.object.config.scale then
-            node.config.object.config.scale = node.config.object.config.scale * config.tooltip_scale
+          if node.config.scale then
+            scaled_desc_nodes[k][i].config.scale = node.config.scale * config.tooltip_scale
           end
         end
-        
-        -- Recursively scale child nodes
-        if node.nodes then
-          scale_variation_tooltip(node.nodes)
+        -- Scale DynaText objects
+        if node.config and node.config.object and type(node.config.object) == "table" and node.config.object.config then
+          if not scaled_desc_nodes[k][i].config.object then
+            scaled_desc_nodes[k][i].config.object = {}
+            for key, val in pairs(node.config.object) do
+              scaled_desc_nodes[k][i].config.object[key] = val
+            end
+          end
+          if not scaled_desc_nodes[k][i].config.object.config then
+            scaled_desc_nodes[k][i].config.object.config = {}
+            for key, val in pairs(node.config.object.config) do
+              scaled_desc_nodes[k][i].config.object.config[key] = val
+            end
+          end
+          if node.config.object.config.scale then
+            scaled_desc_nodes[k][i].config.object.config.scale = node.config.object.config.scale * config.tooltip_scale
+          end
         end
       end
     end
+  end
+  
+  -- Call original function with scaled nodes
+  local result = orig_info_tip_from_rows(scaled_desc_nodes, name)
+  
+  if result and config.tooltip_scale ~= 1.0 then
+    -- Scale the root container properties
+    if result.config then
+      result.config.r = (result.config.r or 0.1) * config.tooltip_scale
+    end
     
+    -- Scale the direct child nodes (title and content containers)
     if result.nodes then
-      scale_variation_tooltip(result.nodes)
+      for _, node in ipairs(result.nodes) do
+        if node.config then
+          if node.config.padding then node.config.padding = node.config.padding * config.tooltip_scale end
+          if node.config.minh then node.config.minh = node.config.minh * config.tooltip_scale end  
+          if node.config.minw then node.config.minw = node.config.minw * config.tooltip_scale end
+          if node.config.r then node.config.r = node.config.r * config.tooltip_scale end
+          -- Scale text scale if present
+          if node.config.scale then node.config.scale = node.config.scale * config.tooltip_scale end
+          -- Scale text in nested nodes
+          if node.nodes and node.nodes[1] and node.nodes[1].config and node.nodes[1].config.scale then
+            node.nodes[1].config.scale = node.nodes[1].config.scale * config.tooltip_scale
+          end
+        end
+      end
     end
   end
   

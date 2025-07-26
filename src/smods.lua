@@ -1,6 +1,7 @@
 local config_ui = require('zoomer.config_ui')
 local config = require('zoomer.config')
 local logger = require('zoomer.logger')
+local Zoomer = require('zoomer.core')
 
 if not SMODS then
     logger.log_warn('SMODS not found')

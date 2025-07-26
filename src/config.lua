@@ -51,7 +51,7 @@ function config.save()
         SAVE_PATH,
         'return ' .. serialize_config(config or config.DEFAULTS)
     )
-    print("Save success?", success, "Error:", err)
+    -- print("Save success?", success, "Error:", err)
 
 end
 
